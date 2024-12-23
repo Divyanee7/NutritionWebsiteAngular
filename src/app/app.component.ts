@@ -11,8 +11,7 @@ import { UserDashboardComponent } from './components/user-dashboard/user-dashboa
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [
-    
+  imports: [   
     CommonModule,
     RouterOutlet,
     FormsModule,
@@ -24,4 +23,6 @@ import { UserDashboardComponent } from './components/user-dashboard/user-dashboa
   ],
   template: '<router-outlet></router-outlet>'
 })
-export class AppComponent {}
+export class AppComponent {
+  title = 'nutrition-website';
+}

@@ -28,6 +28,14 @@ export class AuthService {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
+  getAllUsers(): Observable<User[]> {
+    return this.http.get<User[]>(this.baseUrl);
+  }
+
+  updateUser(user: User): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/${user.userId}`, user);
+  }
+
   logout(): void {
     localStorage.removeItem('user');
   }
