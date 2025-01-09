@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
 import { User } from '../models/user';
 
@@ -28,12 +28,26 @@ export class AuthService {
     localStorage.setItem('user', JSON.stringify(user));
   }
 
-  getAllUsers(): Observable<User[]> {
-    return this.http.get<User[]>(this.baseUrl);
+  getAllUsers(searchTerm?: string): Observable<User[]> {
+    let params = new HttpParams();
+    if (searchTerm) {
+      params = params.set('search', searchTerm);
+    }
+    return this.http.get<User[]>(`${this.baseUrl}/users`, { params });
   }
 
-  updateUser(user: User): Observable<User> {
-    return this.http.put<User>(`${this.baseUrl}/${user.userId}`, user);
+  exportUsersToExcel(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/users/export`, {
+      responseType: 'blob'
+    });
+  }
+
+
+  deleteUser(userId: number): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/users/${userId}`);
+  }
+  updateUserWeight(userId: number, newWeight: number): Observable<User> {
+    return this.http.put<User>(`${this.baseUrl}/users/update-weight/${userId}`, newWeight);
   }
 
   logout(): void {

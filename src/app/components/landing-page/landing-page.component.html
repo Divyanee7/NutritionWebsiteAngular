@@ -1,1 +1,76 @@
-<p>landing-page works!</p>
+<nav class="navbar">
+    <div class="nav-container">
+      <a [routerLink]="['/']" class="nav-brand">
+        <i class="fas fa-utensils"></i>
+        Nutrition Tracker
+      </a>
+      <button class="mobile-menu-btn" (click)="toggleMenu()">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div class="nav-menu" id="navMenu">
+        <a [routerLink]="['/meal-planner']" class="nav-link">
+          <i class="fas fa-calendar-alt"></i> Nutrition Planner
+        </a>
+        <a [routerLink]="['/recipes']" class="nav-link">
+          <i class="fas fa-book-open"></i> Recipes
+        </a>
+        <a [routerLink]="['/bmi']" class="nav-link">
+          <i class="fas fa-calculator"></i> BMI Calculator
+        </a>
+        <a [routerLink]="['/contact']" class="nav-link">
+          <i class="fas fa-envelope"></i> Contact
+        </a>
+        <a [routerLink]="['/about']" class="nav-link">
+          <i class="fas fa-info-circle"></i> About
+        </a>
+        <a [routerLink]="['/login']" class="nav-link highlight">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+      </div>
+    </div>
+  </nav>
+  
+  <section class="hero">
+    <div class="hero-content">
+      <h1>Transform Your Nutrition Journey</h1>
+      <p>
+        Discover personalized meal plans, track your progress,
+        and achieve your health goals with our comprehensive
+        nutrition tracking platform.
+      </p>
+      <div class="cta-buttons">
+        <a [routerLink]="['/login']" class="btn">
+          <i class="fas fa-sign-in-alt"></i> Login
+        </a>
+        <a [routerLink]="['/register']" class="btn">
+          <i class="fas fa-user-plus"></i> Register
+        </a>
+      </div>
+    </div>
+    <div class="hero-images">
+      <div class="hero-image">
+        <img src="../../../assets/images/landing.jpg" alt="Nutrition Image 1">
+      </div>
+      <div class="hero-image">
+        <img src="../../../assets/images/image.png" alt="Nutrition Image 2">
+      </div>
+    </div>
+  </section>
+  
+  <section class="features">
+    <div class="feature">
+      <i class="fas fa-chart-line"></i>
+      <h3>Track Progress</h3>
+      <p>Monitor your nutritional intake and health metrics seamlessly.</p>
+    </div>
+    <div class="feature">
+      <i class="fas fa-utensils"></i>
+      <h3>Personalized Meals</h3>
+      <p>Get customized meal plans tailored to your fitness goals.</p>
+    </div>
+    <div class="feature">
+      <i class="fas fa-dumbbell"></i>
+      <h3>Fitness Integration</h3>
+      <p>Sync your nutrition with workout routines for optimal results.</p>
+    </div>
+  </section>

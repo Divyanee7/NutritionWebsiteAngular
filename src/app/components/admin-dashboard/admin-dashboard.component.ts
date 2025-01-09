@@ -2,281 +2,549 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { User } from '../../models/user';
 import { AuthService } from '../../services/auth.service';
+import { Router, RouterModule } from '@angular/router';
+import { FormsModule } from '@angular/forms';
+import { MatIconModule } from '@angular/material/icon';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, RouterModule, MatIconModule],
   template: `
-    <div class="admin-container">
-      <header class="dashboard-header">
-        <h1>Admin Dashboard</h1>
-        <div class="header-actions">
-          <input 
-            type="text" 
-            placeholder="Search users..." 
-            (input)="searchUsers($event)"
-            class="search-input"
-          >
-        </div>
+    <!-- Add this in your index.html head section -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <div class="header-container">
+      <header class="header">
+        <h1>
+          <span class="material-icons">admin_panel_settings</span>
+          Admin Dashboard
+        </h1>
       </header>
+      <nav class="navbar">
+        <div class="nav-left">
+          <a [routerLink]="['/admin/dashboard']" routerLinkActive="active">
+            <span class="material-icons">dashboard</span> Dashboard
+          </a>
+          <a [routerLink]="['/admin']" routerLinkActive="active">
+            <span class="material-icons">group</span> Users
+          </a>
+          <a [routerLink]="['/contact_admin']" routerLinkActive="active">
+            <span class="material-icons">contact_mail</span> Contact Submissions
+          </a>
+        <a routerLink="/recipes_admin" routerLinkActive="active" class="nav-item">
+            <mat-icon>menu_book</mat-icon> Recipes
+          </a>
+          <a [routerLink]="['/blog_admin']" routerLinkActive="active">
+            <span class="material-icons">article</span> Blog Data
+          </a>
+          <a [routerLink]="['/admin/foods']" routerLinkActive="active">
+            <span class="material-icons">restaurant</span> Food Data
+          </a>
+        </div>
+        <div class="nav-right">
+          <a [routerLink]="['/login']" class="btn-danger">
+            <span class="material-icons">logout</span> Logout
+          </a>
+        </div>
+      </nav>
+    </div>
 
-      <div class="users-table-container">
-        <table class="users-table">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Email</th>
-              <th>Age</th>
-              <th>Gender</th>
-              <th>Primary Goal</th>
-              <th>Dietary Preference</th>
-              <th>Activity Level</th>
-              <th>Status</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (user of filteredUsers; track user.) {
-              <tr>
-                <td>{{user.name}}</td>
-                <td>{{user.email}}</td>
-                <td>{{user.age}}</td>
-                <td>{{user.gender}}</td>
-                <td>{{user.primaryGoal}}</td>
-                <td>{{user.dietaryPreferences}}</td>
-                <td>{{user.activityLevel}}</td>
-                <td>
-                  <span [class]="user.enabled ? 'status-active' : 'status-inactive'">
-                    {{user.enabled ? 'Active' : 'Inactive'}}
-                  </span>
-                </td>
-                <td class="actions-cell">
-                  <button (click)="viewUserDetails(user)" class="btn-view">
-                    View
-                  </button>
-                  <button 
-                    (click)="toggleUserStatus(user)" 
-                    [class]="user.enabled ? 'btn-disable' : 'btn-enable'"
-                  >
-                    {{user.enabled ? 'Disable' : 'Enable'}}
-                  </button>
-                </td>
-              </tr>
-            } @empty {
-              <tr>
-                <td colspan="9" class="no-data">No users found</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      @if (selectedUser) {
-        <div class="user-details-modal">
-          <div class="modal-content">
-            <h2>User Details</h2>
-            <div class="user-details-grid">
-              <div class="detail-item">
-                <label>Name:</label>
-                <span>{{selectedUser.name}}</span>
-              </div>
-              <div class="detail-item">
-                <label>Email:</label>
-                <span>{{selectedUser.email}}</span>
-              </div>
-              <div class="detail-item">
-                <label>Phone:</label>
-                <span>{{selectedUser.phone}}</span>
-              </div>
-              <div class="detail-item">
-                <label>Age:</label>
-                <span>{{selectedUser.age}}</span>
-              </div>
-              <div class="detail-item">
-                <label>Height:</label>
-                <span>{{selectedUser.height}} cm</span>
-              </div>
-              <div class="detail-item">
-                <label>Weight:</label>
-                <span>{{selectedUser.weight}} kg</span>
-              </div>
-              <div class="detail-item">
-                <label>Target Weight:</label>
-                <span>{{selectedUser.targetWeight}} kg</span>
-              </div>
-              <div class="detail-item">
-                <label>Weekly Goal:</label>
-                <span>{{selectedUser.weeklyGoal}} kg</span>
-              </div>
-              <div class="detail-item">
-                <label>Food Allergies:</label>
-                <span>{{selectedUser.foodAllergies || 'None'}}</span>
-              </div>
+    <main class="main-content">
+      <div class="users-container">
+        <div class="table-header">
+          <h2>User Management</h2>
+          <button class="btn btn-warning" (click)="exportToExcel()">
+            <span class="material-icons">file_download</span> Export to Excel
+          </button>
+          
+          <div class="search-container">
+            <div class="search-form">
+              <input 
+                type="text" 
+                [(ngModel)]="searchTerm" 
+                (input)="onSearchChange()"
+                placeholder="Search users..." 
+                class="search-input"
+              >
+              <button class="btn btn-primary" (click)="search()">
+                <span class="material-icons">search</span> Search
+              </button>
             </div>
-            <button (click)="closeUserDetails()" class="btn-close">Close</button>
           </div>
         </div>
-      }
-    </div>
+
+        <div *ngIf="users.length > 0; else noUsers">
+          <div class="table-container">
+            <table class="users-table">
+              <thead>
+                <tr>
+                  <th>
+                    <button class="sort-button" (click)="sort('userId')">
+                      ID
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'userId'">
+                        {{getSortIcon('userId')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="sort-button" (click)="sort('name')">
+                      Name
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'name'">
+                        {{getSortIcon('name')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="sort-button" (click)="sort('email')">
+                      Email
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'email'">
+                        {{getSortIcon('email')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="sort-button" (click)="sort('phone')">
+                      Phone
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'phone'">
+                        {{getSortIcon('phone')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="sort-button" (click)="sort('loginName')">
+                      Login Name
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'loginName'">
+                        {{getSortIcon('loginName')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>
+                    <button class="sort-button" (click)="sort('enabled')">
+                      Status
+                      <span class="material-icons sort-icon" [class.sort-active]="sortField === 'enabled'">
+                        {{getSortIcon('enabled')}}
+                      </span>
+                    </button>
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let user of users">
+                  <td>{{user.userId}}</td>
+                  <td>{{user.name}}</td>
+                  <td>{{user.email}}</td>
+                  <td>{{user.phone}}</td>
+                  <td>{{user.loginName}}</td>
+                  <td>
+                    <span [class]="'status-badge ' + (user.enabled ? 'status-active' : 'status-inactive')">
+                      {{user.enabled ? 'Active' : 'Inactive'}}
+                    </span>
+                  </td>
+                  <td class="action-buttons">
+                    <button class="btn btn-danger" (click)="deleteUser(user)">
+                      <span class="material-icons">delete</span> Delete
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <ng-template #noUsers>
+          <div class="no-users-message">
+            <p>No users found.</p>
+          </div>
+        </ng-template>
+      </div>
+    </main>
   `,
   styles: [`
-    .admin-container {
-      padding: 24px;
-      max-width: 1200px;
-      margin: 0 auto;
+
+     .header-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      background: #005700;
     }
 
-    .dashboard-header {
+    .header {
+      background: #005700;
+      padding: 1rem;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .header h1 {
+      color: white;
+      text-align: center;
+      font-size: 2.5em;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      gap: 10px;
+    }
+
+    .header h1 mat-icon {
+      font-size: 32px;
+      height: 32px;
+      width: 32px;
+      color: #f1c40f;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .navbar a mat-icon {
+      margin-right: 4px;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .btn mat-icon {
+      font-size: 20px;
+      height: 20px;
+      width: 20px;
+    }
+
+    .sort-button {
+      background: none;
+      border: none;
+      padding: 0;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2c3e50;
+    }
+
+    .sort-icon {
+      font-size: 18px;
+      height: 18px;
+      width: 18px;
+    }
+
+    .sort-active {
+      color: #2ecc71;
+    }
+
+    .header h1 i {
+      margin-right: 15px;
+      color: #f1c40f;
+    }
+
+    .navbar {
+      background: #005700;
+      padding: 1rem;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 24px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .nav-left, .nav-right {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+
+    .navbar a {
+      color: white;
+      text-decoration: none;
+      padding: 0.7rem 1.2rem;
+      border-radius: 25px;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 500;
+      background: rgba(255, 255, 255, 0.1);
+      white-space: nowrap;
+    }
+
+    .navbar a:hover {
+      background: rgba(255, 255, 255, 0.2);
+      transform: translateY(-2px);
+    }
+
+    .navbar a.active {
+      background: #f1c40f;
+      color: #2c3e50;
+    }
+
+    .btn-danger {
+      background: #e74c3c !important;
+    }
+     * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .main-content {
+      flex: 1;
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+      background: #f5f6fa;
+      min-height: 100vh;
+      margin-top: 140px; /* Added to account for fixed header */
+    }
+
+    .users-container {
+      background: white;
+      border-radius: 15px;
+      padding: 2rem;
+      box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    }
+
+    .table-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .table-header h2 {
+      font-size: 1.8rem;
+      color: #2c3e50;
+    }
+
+    .search-container {
+      flex-grow: 1;
+      max-width: 600px;
+    }
+
+    .search-form {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
     }
 
     .search-input {
-      padding: 8px 16px;
-      border: 1px solid #ddd;
-      border-radius: 4px;
-      width: 300px;
+      padding: 0.8rem;
+      border: 2px solid #ecf0f1;
+      border-radius: 8px;
+      font-size: 1rem;
+      flex-grow: 1;
+      min-width: 200px;
     }
 
-    .users-table-container {
+    .btn {
+      padding: 0.8rem 1.5rem;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.3s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      text-decoration: none;
+    }
+
+    .btn-primary {
+      background: #2ecc71;
+      color: white;
+    }
+
+    .btn-danger {
+      background: #e74c3c;
+      color: white;
+    }
+
+    .btn-warning {
+      background: #f1c40f;
+      color: #2c3e50;
+    }
+
+    .btn:hover {
+      opacity: 0.9;
+      transform: translateY(-2px);
+    }
+
+    .table-container {
       overflow-x: auto;
     }
 
     .users-table {
       width: 100%;
-      border-collapse: collapse;
-      background: white;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-collapse: separate;
+      border-spacing: 0;
+      margin-top: 1rem;
     }
 
     .users-table th,
     .users-table td {
-      padding: 12px;
+      padding: 1rem;
       text-align: left;
-      border-bottom: 1px solid #eee;
+      border-bottom: 1px solid #ecf0f1;
     }
 
     .users-table th {
-      background: #f5f5f5;
+      background: #f8f9fa;
       font-weight: 600;
+      color: #2c3e50;
+      position: sticky;
+      top: 0;
     }
 
-    .actions-cell {
-      display: flex;
-      gap: 8px;
+    .users-table tr:hover {
+      background: #f8f9fa;
     }
 
-    .btn-view,
-    .btn-enable,
-    .btn-disable {
-      padding: 6px 12px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
+    .users-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .status-badge {
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      font-size: 0.9em;
       font-weight: 500;
-    }
-
-    .btn-view {
-      background: #2196f3;
-      color: white;
-    }
-
-    .btn-enable {
-      background: #4caf50;
-      color: white;
-    }
-
-    .btn-disable {
-      background: #f44336;
-      color: white;
+      display: inline-block;
+      text-align: center;
+      min-width: 100px;
     }
 
     .status-active {
-      color: #4caf50;
-      font-weight: 500;
+      background: #e8f5e9;
+      color: #2e7d32;
     }
 
     .status-inactive {
-      color: #f44336;
-      font-weight: 500;
+      background: #ffebee;
+      color: #c62828;
     }
 
-    .no-data {
+    .action-buttons {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+    }
+
+    .action-buttons .btn {
+      padding: 0.5rem 1rem;
+      font-size: 0.9em;
+    }
+
+    .no-users-message {
       text-align: center;
-      color: #666;
-      padding: 24px;
+      padding: 2rem;
+      color: #7f8c8d;
     }
 
-    .user-details-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    .modal-content {
-      background: white;
-      padding: 24px;
-      border-radius: 8px;
-      max-width: 600px;
-      width: 90%;
-      max-height: 90vh;
-      overflow-y: auto;
-    }
-
-    .user-details-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-      margin: 24px 0;
-    }
-
-    .detail-item {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .detail-item label {
-      font-weight: 500;
-      color: #666;
-    }
-
-    .btn-close {
-      width: 100%;
-      padding: 12px;
-      background: #666;
-      color: white;
+    .sort-button {
+      background: none;
       border: none;
-      border-radius: 4px;
+      padding: 0;
       cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #2c3e50;
+    }
+
+    .sort-button:hover {
+      color: #2ecc71;
+    }
+
+    .sort-icon {
+      font-size: 0.8em;
+    }
+
+    .sort-active {
+      color: #2ecc71;
+    }
+
+    @media (max-width: 768px) {
+      .table-header {
+        flex-direction: column;
+      }
+
+      .search-form {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .search-input {
+        width: 100%;
+      }
+
+      .btn {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .users-table {
+        display: block;
+        overflow-x: auto;
+        white-space: nowrap;
+      }
+
+      .users-table th,
+      .users-table td {
+        min-width: 120px;
+      }
+
+      .action-buttons {
+        flex-direction: column;
+      }
     }
   `]
 })
 export class AdminDashboardComponent implements OnInit {
   users: User[] = [];
-  filteredUsers: User[] = [];
-  selectedUser: User | null = null;
+  searchTerm: string = '';
+  sortField: string = '';
+  sortDirection: 'asc' | 'desc' = 'asc';
+  searchTimer: any;
 
-  constructor(private userService: AuthService) {}
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {}
 
   ngOnInit() {
-    this.loadUsers();
+    this.authService.getCurrentUser().subscribe(user => {
+      if (!user || user.role !== 1) {
+        this.router.navigate(['/login']);
+        return;
+      }
+      this.loadUsers();
+    });
   }
 
   loadUsers() {
-    this.userService.getAllUsers().subscribe({
+    this.authService.getAllUsers().subscribe({
       next: (users) => {
         this.users = users;
-        this.filteredUsers = users;
       },
       error: (error) => {
         console.error('Error loading users:', error);
@@ -285,33 +553,68 @@ export class AdminDashboardComponent implements OnInit {
     });
   }
 
-  searchUsers(event: Event) {
-    const searchTerm = (event.target as HTMLInputElement).value.toLowerCase();
-    this.filteredUsers = this.users.filter(user =>
-      user.name.toLowerCase().includes(searchTerm) ||
-      user.email.toLowerCase().includes(searchTerm) ||
-      user.primaryGoal.toLowerCase().includes(searchTerm)
-    );
+  deleteUser(user: User) {
+    if (!user.userId) return;
+    
+    if (confirm(`Are you sure you want to delete ${user.name}?`)) {
+      this.authService.deleteUser(user.userId).subscribe({
+        next: () => {
+          this.users = this.users.filter(u => u.userId !== user.userId);
+        },
+        error: (error) => {
+          console.error('Error deleting user:', error);
+          alert('Failed to delete user. Please try again.');
+        }
+      });
+    }
   }
 
-  viewUserDetails(user: User) {
-    this.selectedUser = user;
+  onSearchChange() {
+    clearTimeout(this.searchTimer);
+    this.searchTimer = setTimeout(() => {
+      this.search();
+    }, 300);
   }
 
-  closeUserDetails() {
-    this.selectedUser = null;
-  }
-
-  toggleUserStatus(user: User) {
-    const updatedUser = { ...user, enabled: !user.enabled };
-    this.userService.updateUser(updatedUser).subscribe({
-      next: () => {
-        user.enabled = !user.enabled;
-        alert(`User ${user.enabled ? 'enabled' : 'disabled'} successfully`);
+  search() {
+    this.authService.getAllUsers(this.searchTerm).subscribe({
+      next: (users) => {
+        this.users = users;
       },
       error: (error) => {
-        console.error('Error updating user status:', error);
-        alert('Failed to update user status. Please try again.');
+        console.error('Error searching users:', error);
+        alert('Failed to search users. Please try again.');
+      }
+    });
+  }
+
+  sort(field: string) {
+    if (this.sortField === field) {
+      this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortField = field;
+      this.sortDirection = 'asc';
+    }
+  }
+
+  getSortIcon(field: string): string {
+    if (this.sortField !== field) return 'unfold_more';
+    return this.sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward';
+  }
+
+  exportToExcel() {
+    this.authService.exportUsersToExcel().subscribe({
+      next: (blob: Blob) => {
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'users.xlsx';
+        link.click();
+        window.URL.revokeObjectURL(url);
+      },
+      error: (error) => {
+        console.error('Error exporting users:', error);
+        alert('Failed to export users. Please try again.');
       }
     });
   }
